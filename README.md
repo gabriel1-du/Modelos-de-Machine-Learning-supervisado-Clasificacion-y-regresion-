@@ -1,8 +1,28 @@
-# Predicción de Cáncer de Mama (Benigno vs Maligno)
+# EP3 — Machine Learning Supervisado: Clasificación y Regresión
 
-Proyecto de Machine Learning supervisado desarrollado en `notebookDesarrollo.ipynb`. Se entrenan y comparan modelos de clasificación para predecir si un tumor de mama es **benigno** o **maligno** a partir de mediciones celulares.
+Proyecto de Machine Learning supervisado desarrollado en `notebookDesarrollo.ipynb`. Incluye dos casos:
+
+- **Caso 1 (Regresión):** predicción del precio de venta de autos usados (`car_data.csv`) con SVR y KNN.
+- **Caso 2 (Clasificación):** predicción de cáncer de mama benigno/maligno (`breast_cancer.csv`) con Regresión Logística y Árboles de Decisión.
+
+**Integrantes:** Martin Higuera y Gabriel Duran.
 
 ---
+
+## Caso 1: Regresión — Predicción del Precio de Venta de Autos Usados
+
+El dataset (`car_data.csv`) contiene **301 registros** de autos usados con 8 variables: `nom_auto`, `anno`, `precio_venta_actual` (target), `precio_actual`, `kilometraje`, `tipo_combustible`, `tipo_vendedor`, `transmision`, `propietario`.
+
+| Modelo | MSE | RMSE | MAE | R² prueba | R² entrenamiento |
+|---|---|---|---|---|---|
+| SVR (`rbf`, C=1.0, ε=0.1) | 5,1198 | 2,2627 | 1,0108 | 0,7777 | 0,6565 |
+| **KNN (`n_neighbors=7`)** | **1,6512** | **1,2850** | **0,7790** | **0,9283** | 0,8906 |
+
+**Mejor modelo de regresión:** KNN, con RMSE de 1,2850 y R² de 0,9283 en prueba, sin sobreajuste. El SVR quedó en subajuste con la configuración del encargo.
+
+---
+
+## Caso 2: Clasificación — Predicción de Cáncer de Mama (Benigno vs Maligno)
 
 ## Contexto del caso
 
@@ -86,6 +106,7 @@ Las variables más correlacionadas con el target fueron `concave points_worst` (
 |---|---|---|---|---|---|---|---|
 | Regresión Logística (base) | **97,37 %** | 100 % | 92,86 % | 96,30 % | **0,9980** | 3 | 0 |
 | Regresión Logística + GridSearchCV | **97,37 %** | 100 % | 92,86 % | 96,30 % | **0,9980** | 3 | 0 |
+| **Regresión Logística (`class_weight="balanced"`)** | **98,25 %** | 100 % | **95,24 %** | **97,56 %** | **0,9980** | **2** | 0 |
 | Árbol de Decisión (`max_depth=3`) | 91,23 % | 94,44 % | 80,95 % | 87,18 % | 0,8986 | 8 | 2 |
 | Árbol de Decisión (sin restricción) | 92,98 % | 90,48 % | 90,48 % | 90,48 % | 0,9246 | 4 | 4 |
 
@@ -94,13 +115,15 @@ Las variables más correlacionadas con el target fueron `concave points_worst` (
 | Modelo | Accuracy Train | Accuracy Test | Brecha |
 |---|---|---|---|
 | Regresión Logística | 96,92 % | 97,37 % | 0,45 % |
+| Regresión Logística (balanced) | 97,58 % | 98,25 % | 0,66 % |
 | Árbol (`max_depth=3`) | 96,70 % | 91,23 % | 5,48 % |
 | Árbol (sin restricción) | 100,00 % | 92,98 % | **7,02 %** |
 
 ### Conclusiones
 
-- La **Regresión Logística** fue el mejor modelo: 97,37 % de accuracy, 0 falsos positivos y solo 3 falsos negativos, con un AUC de 0,9980.
+- La **Regresión Logística** fue la mejor familia de modelos: 97,37 % de accuracy (base) y 98,25 % (balanced), 0 falsos positivos y solo 3 (base) o 2 (balanced) falsos negativos, con un AUC de 0,9980.
 - **GridSearchCV no mejoró el desempeño**: los mejores hiperparámetros (`max_iter=50`, `solver='newton-cg'`) dieron resultados idénticos al modelo base, por lo que el modelo original se mantiene.
+- El **balanceo con `class_weight="balanced"`** aumentó el recall de la clase maligna (de 92,86 % a 95,24 %) y redujo los falsos negativos de 3 a 2, sin agregar falsos positivos. Dado que en un contexto oncológico los falsos negativos son el error más costoso, se selecciona esta variante como modelo final de clasificación.
 - El **árbol sin restricción presenta overfitting**: logra 100 % en entrenamiento pero cae a 92,98 % en prueba (brecha de 7,02 %). La curva de validación confirma que el sobreajuste aparece al superar una profundidad de 3.
 - Limitar la profundidad (`max_depth=3`) reduce la brecha de overfitting, pero el árbol sigue siendo inferior a la regresión logística.
 - La debilidad principal de los árboles es el **recall de la clase maligna** (80,95 % y 90,48 %), ya que en un contexto oncológico los falsos negativos son el error más costoso.
@@ -114,7 +137,7 @@ Las variables más correlacionadas con el target fueron `concave points_worst` (
 | `pandas` | Carga y manipulación del dataset |
 | `matplotlib` | Gráficos |
 | `seaborn` | Heatmaps, boxplots y matrices de confusión |
-| `scikit-learn` | `train_test_split`, `MinMaxScaler`, `LogisticRegression`, `DecisionTreeClassifier`, `plot_tree`, `GridSearchCV` y métricas (`classification_report`, `accuracy_score`, `precision_score`, `recall_score`, `f1_score`, `confusion_matrix`, `roc_curve`, `roc_auc_score`) |
+| `scikit-learn` | `train_test_split`, `StandardScaler`, `MinMaxScaler`, `SVR`, `KNeighborsRegressor`, `LogisticRegression`, `DecisionTreeClassifier`, `plot_tree`, `GridSearchCV` y métricas (`classification_report`, `accuracy_score`, `precision_score`, `recall_score`, `f1_score`, `confusion_matrix`, `roc_curve`, `roc_auc_score`, `mean_squared_error`, `mean_absolute_error`, `r2_score`) |
 | `numpy` | Operaciones numéricas |
 | `math` | Cálculo de la cuadrícula de gráficos |
 | `shutil` | Copia del archivo original |
