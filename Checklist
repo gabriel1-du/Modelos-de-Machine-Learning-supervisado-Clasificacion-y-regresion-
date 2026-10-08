@@ -17,3 +17,32 @@ gabo:
 [7:45 p.m., 7/10/2026] Gabriel Duoc: estuve revisando lo que te dejo la ia y alpracer la ia alucino, porque no se usaba grid search en el caso 1
 [7:46 p.m., 7/10/2026] Gabriel Duoc: lo otro es que asegúrate usando la variavle que pide en el doc
 [7:46 p.m., 7/10/2026] Gabriel Duoc: además de eso la ia te hizo media pega
+
+---
+
+SESION 08/10/2026 (rama branch-higuera2, base en master 9b89cf4)
+[17:18] e40a95e - Agrega Caso 1 de regresion, corrige Caso 2 y completa seccion de seleccion de modelos:
+  - Caso 1 nuevo en notebookDesarrollo.ipynb: carga con encabezado corregido (9 nombres),
+    target precio_venta_actual (la variable del doc), OHE con drop_first, StandardScaler
+    (fit solo en train), SVR (rbf, C=1.0, epsilon=0.1) y KNN (k=7) con MSE/RMSE/MAE/R2.
+    Sin GridSearchCV (el doc no lo pide en el Caso 1). Ganador: KNN (RMSE 1,2850, R2 0,9283).
+  - Caso 2: pasos faltantes del PDF (examen de diagnosis, primeros 10 valores train/test),
+    desbalance con class_weight='balanced' (recall maligno 95,24%, FN 3->2),
+    conclusion corregida (el mejor es Regresion Logistica, no el arbol libre).
+  - Header con equipo, declaracion de IA y fuentes. Seccion final de seleccion y analisis.
+  - Notebook ejecutado completo (83 celdas, 0 errores). README actualizado.
+[17:49] 3103ad5 - Corrige ortografia del notebook (IE8, 60+ reemplazos verificados)
+  y titulo del print del arbol sin restriccion. Revision con 3 subagentes:
+  46/46 pasos OK, rubrica IE1-IE8 cubierta, notebook reproducible y README coherente.
+[18:02] 5b376d3 - Elimina imports redundantes (centralizados en celda 2).
+[18:09] 0f378b4 - REVERT del anterior: se restauran los imports en cada bloque
+  (pedido de Martin: interesa ver donde va cada import y como se usa).
+  Ademas se restaura el archivo Checklist (habia desaparecido del disco).
+[18:12] acf9d5d - Renombra variables reasignadas con sufijos _d3, _libre y _lr
+  (y_pred_arbol, metricas_arbol, cm_arbol, exactitud_arbol, acc/prec/rec/f1/roc_auc, tn/fp/fn/tp).
+  Re-ejecutado: 83 celdas, 0 errores, metricas identicas.
+
+PENDIENTE:
+- Push de branch-higuera2 para revision de Gabo.
+- Coordinar merge a master.
+- Armar RAR TLY_TE2_002D_MHiguera_GDuran y enviar (Blackboard + correo respaldo).
