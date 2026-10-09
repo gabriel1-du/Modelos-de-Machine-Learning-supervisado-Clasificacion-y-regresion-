@@ -1,5 +1,7 @@
 # EP3 — Machine Learning Supervisado: Clasificación y Regresión
 
+**Asignatura:** TLY1101 — Machine Learning | **Sección:** 002D
+
 Proyecto de Machine Learning supervisado desarrollado en `notebookDesarrollo.ipynb`. Incluye dos casos:
 
 - **Caso 1 (Regresión):** predicción del precio de venta de autos usados (`car_data.csv`) con SVR y KNN.
@@ -7,11 +9,51 @@ Proyecto de Machine Learning supervisado desarrollado en `notebookDesarrollo.ipy
 
 **Integrantes:** Martin Higuera y Gabriel Duran.
 
+**Declaración de uso de IA:** se usaron herramientas de IA como apoyo para redacción, organización y revisión del notebook. Todo el código, los análisis y las justificaciones fueron revisados y validados por el equipo, conforme a la política institucional: https://bibliotecas.duoc.cl/ia
+
+---
+
+## Estructura del repositorio
+
+| Ruta | Contenido |
+|---|---|
+| `notebookDesarrollo.ipynb` | Notebook principal con ambos casos (213 celdas, ejecutado sin errores) |
+| `data_sets/car_data.csv` | Dataset original del Caso 1 (301 registros) |
+| `data_sets/breast_cancer.csv` | Dataset original del Caso 2 (569 registros) |
+| `copy/car_data_copy.csv` | Copia de seguridad del CSV del Caso 1 |
+| `copy/breast_can_copy.csv` | Copia de seguridad del CSV del Caso 2 |
+| `Checklist` | Bitácora de avance del equipo |
+
+Para reproducir: abrir `notebookDesarrollo.ipynb` y ejecutar todas las celdas en orden. Los CSV de respaldo en `copy/` permiten restaurar los datos originales si se alteran los de `data_sets/`.
+
 ---
 
 ## Caso 1: Regresión — Predicción del Precio de Venta de Autos Usados
 
-El dataset (`car_data.csv`) contiene **301 registros** de autos usados con 8 variables: `nom_auto`, `anno`, `precio_venta_actual` (target), `precio_actual`, `kilometraje`, `tipo_combustible`, `tipo_vendedor`, `transmision`, `propietario`.
+**Objetivo:** predecir el **precio de venta de un auto usado** (target `precio_venta_actual`, el precio en que el vehículo se está vendiendo, tal como lo define el encargo) a partir de sus características: año, kilometraje, tipo de combustible, tipo de vendedor, transmisión, cantidad de propietarios y precio del vehículo nuevo.
+
+El dataset (`car_data.csv`) contiene **301 registros**. El encabezado del archivo trae **8 nombres para filas de 9 valores** (falta el nombre de la cuarta columna, el precio actual del vehículo nuevo), por lo que se lee indicando explícitamente los **9 nombres correctos**; de lo contrario pandas desplaza todas las etiquetas una posición.
+
+### Preprocesamiento (Caso 1)
+
+| Paso | Resultado |
+|---|---|
+| Copia de seguridad | Se copió el CSV original a `copy/car_data_copy.csv`. |
+| Corrección de encabezado | Lectura con los 9 nombres correctos; target `precio_venta_actual`. |
+| `nom_auto` | **Eliminada**: 98 categorías distintas en 301 registros (1–2 apariciones por modelo), sin información generalizable. |
+| Categóricas (`tipo_combustible`, `tipo_vendedor`, `transmision`) | **One-Hot Encoding** con `drop_first=True` (evita la trampa de las variables dummy). |
+| Correlación | La más correlacionada con el precio de venta es `precio_actual`, seguida de `anno`; `kilometraje` correlaciona en forma negativa. |
+| Partición | 80 % entrenamiento (**~240** registros) / 20 % prueba (**~61** registros), con `random_state=42`. |
+| Escalamiento | `StandardScaler`, ajustado **solo con el conjunto de entrenamiento** (evita fuga de datos). Necesario porque SVR y KNN trabajan con distancias y las magnitudes difieren mucho (p. ej. `kilometraje` > 200.000 vs. `propietario` entre 0 y 3). |
+
+### Modelos (Caso 1, sin GridSearchCV — el encargo no lo pide en este caso)
+
+| Modelo | Configuración |
+|---|---|
+| SVR | `kernel='rbf'`, `C=1.0`, `epsilon=0.1` |
+| KNN | `n_neighbors=7` |
+
+Métricas: MSE, RMSE, MAE y R² (prueba y entrenamiento).
 
 | Modelo | MSE | RMSE | MAE | R² prueba | R² entrenamiento |
 |---|---|---|---|---|---|
@@ -127,6 +169,22 @@ Las variables más correlacionadas con el target fueron `concave points_worst` (
 - El **árbol sin restricción presenta overfitting**: logra 100 % en entrenamiento pero cae a 92,98 % en prueba (brecha de 7,02 %). La curva de validación confirma que el sobreajuste aparece al superar una profundidad de 3.
 - Limitar la profundidad (`max_depth=3`) reduce la brecha de overfitting, pero el árbol sigue siendo inferior a la regresión logística.
 - La debilidad principal de los árboles es el **recall de la clase maligna** (80,95 % y 90,48 %), ya que en un contexto oncológico los falsos negativos son el error más costoso.
+
+---
+
+## Selección final de modelos
+
+| Caso | Modelo seleccionado | Desempeño clave en prueba |
+|---|---|---|
+| Caso 1 (Regresión) | **KNeighborsRegressor (`n_neighbors=7`)** | RMSE 1,2850 · R² 0,9283 · sin sobreajuste (R² train 0,8906) |
+| Caso 2 (Clasificación) | **Regresión Logística con `class_weight="balanced"`** | Accuracy 98,25 % · Recall maligno 95,24 % · ROC-AUC 0,9980 · 2 FN, 0 FP |
+
+Detalle de la comparación en el notebook: tabla resumen de regresión (sección 11 del Caso 1) y tabla "Comparación de modelos: Regresión Logística vs Árboles de Decisión" al final del Caso 2.
+
+### Limitaciones y posibles mejoras
+
+- **Datasets pequeños** (301 y 569 registros) con una única partición train/test; los resultados pueden variar con otra semilla. Una validación cruzada más robusta daría mayor confianza.
+- **Multicolinealidad** en el Caso 2: las 30 variables miden características celulares muy relacionadas (radio, perímetro y área miden lo mismo en distintas escalas). Se conservaron todas por encargo; una selección de features o PCA podría simplificar el modelo.
 
 ---
 
